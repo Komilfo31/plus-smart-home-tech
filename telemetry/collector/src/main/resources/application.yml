@@ -1,0 +1,26 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: collector
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.yandex.practicum.telemetry.collector.serialization.CollectorAvroSerializer
+      properties:
+        spring.json.add.type.headers: false
+        delivery.timeout.ms: 15000
+        request.timeout.ms: 10000
+        linger.ms: 0
+        batch.size: 16384
+
+logging:
+  level:
+    ru.yandex.practicum.telemetry: INFO
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
