@@ -1,6 +1,8 @@
 package ru.yandex.practicum.telemetry.collector.service;
 
 import org.apache.avro.specific.SpecificRecordBase;
+import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.telemetry.collector.dto.hubevent.HubEvent;
 import ru.yandex.practicum.telemetry.collector.dto.sensorevent.SensorEvent;
 import ru.yandex.practicum.telemetry.collector.exception.EventProcessingException;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.kafka.core.KafkaTemplate;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
+import ru.yandex.practicum.telemetry.collector.mapper.ProtoToAvroMapper;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,8 +22,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class KafkaEventService implements EventService {
 
-    private final KafkaTemplate<String, SpecificRecordBase> kafkaTemplate; // ← Изменили тип
+    private final KafkaTemplate<String, SpecificRecordBase> kafkaTemplate;
     private final EventMapper eventMapper = new EventMapper();
+    private final ProtoToAvroMapper protoToAvroMapper = new ProtoToAvroMapper();
 
     private static final String SENSORS_TOPIC = "telemetry.sensors.v1";
     private static final String HUBS_TOPIC = "telemetry.hubs.v1";
@@ -46,6 +50,22 @@ public class KafkaEventService implements EventService {
     }
 
     @Override
+    public void processSensorEvent(SensorEventProto event) {
+        try {
+            SensorEventAvro avroEvent = protoToAvroMapper.toAvro(event);
+
+            kafkaTemplate.send(SENSORS_TOPIC, event.getId(), avroEvent)
+                    .get(10, TimeUnit.SECONDS);
+
+            log.debug("Событие датчика успешно отправлено в Kafka: {}", event.getId());
+
+        } catch (Exception e) {
+            log.error("Ошибка обработки события датчика: {}", event.getId(), e);
+            throw new EventProcessingException("Не удалось обработать событие датчика: " + event.getId(), e);
+        }
+    }
+
+    @Override
     public void processHubEvent(HubEvent event) {
         try {
             HubEventAvro avroEvent = eventMapper.toAvro(event);
@@ -62,6 +82,22 @@ public class KafkaEventService implements EventService {
         } catch (Exception e) {
             log.error("Error processing hub event: {}", event.getHubId(), e);
             throw new EventProcessingException("Failed to process hub event: " + event.getHubId(), e);
+        }
+    }
+
+    @Override
+    public void processHubEvent(HubEventProto event) {
+        try {
+            HubEventAvro avroEvent = protoToAvroMapper.toAvro(event);
+
+            kafkaTemplate.send(HUBS_TOPIC, event.getHubId(), avroEvent)
+                    .get(10, TimeUnit.SECONDS);
+
+            log.debug("Событие хаба успешно отправлено в Kafka: {}", event.getHubId());
+
+        } catch (Exception e) {
+            log.error("Ошибка обработки события хаба: {}", event.getHubId(), e);
+            throw new EventProcessingException("Не удалось обработать событие хаба: " + event.getHubId(), e);
         }
     }
 }

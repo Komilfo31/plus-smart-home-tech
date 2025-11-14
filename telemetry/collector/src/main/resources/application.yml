@@ -19,8 +19,13 @@ spring:
         linger.ms: 0
         batch.size: 16384
 
+grpc:
+  server:
+    port: 59091
+
 logging:
   level:
     ru.yandex.practicum.telemetry: INFO
     org.apache.kafka: WARN
     org.springframework.kafka: WARN
+    net.devh: INFO

@@ -3,11 +3,9 @@ package ru.yandex.practicum.telemetry.collector.dto.hubevent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Setter
 @ToString(callSuper = true)
 public class ScenarioRemovedEvent extends HubEvent {
     @NotBlank
