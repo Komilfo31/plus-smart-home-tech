@@ -1,43 +1,16 @@
 server:
   port: 8082
+  servlet:
+    context-path: /
 
-spring:
-  application:
-    name: analyzer
-
-  datasource:
-    url: jdbc:postgresql://localhost:5432/smart_home
-    username: postgres
-    password: 12345
-    driver-class-name: org.postgresql.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        jdbc:
-          batch_size: 20
-        order_inserts: true
-        order_updates: true
-
+analyzer:
   kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: analyzer-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        enable.auto.commit: false
-        max.poll.records: 50
-        max.poll.interval.ms: 300000
-        session.timeout.ms: 10000
-        heartbeat.interval.ms: 3000
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    bootstrap-server: localhost:9092
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+    snapshots-topic: telemetry.snapshots.v1
+    sensors-topic: telemetry.sensors.v1
+    hubs-topic: telemetry.hubs.v1
 
 grpc:
   client:
@@ -47,9 +20,38 @@ grpc:
       keepAliveWithoutCalls: true
       negotiationType: plaintext
 
+spring:
+  application:
+    name: analyzer
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    show-sql: true
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/smart_home
+    username: postgres
+    password: 12345
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      missing-topics-fatal: false
+    properties:
+      max.poll.interval.ms: 300000
+      session.timeout.ms: 10000
+
 logging:
   level:
-    ru.yandex.practicum.telemetry: INFO
+    ru.yandex.practicum.telemetry.analyzer: INFO
     org.apache.kafka: WARN
-    org.springframework.kafka: WARN
+    org.springframework.kafka: DEBUG
     org.hibernate.SQL: DEBUG

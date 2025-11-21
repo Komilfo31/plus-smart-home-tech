@@ -1,5 +1,6 @@
 package ru.yandex.practicum.telemetry.analyzer.entity;
 
+import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,7 +26,6 @@ public class ScenarioAction {
     @MapsId("sensorId")
     private Sensor sensor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("actionId")
+    @Embedded
     private Action action;
 }

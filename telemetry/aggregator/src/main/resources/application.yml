@@ -9,7 +9,7 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: aggregator-group
-      auto-offset-reset: earliest
+      auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: ru.yandex.practicum.telemetry.aggregator.serialization.SensorEventDeserializer
       properties:
@@ -27,6 +27,14 @@ spring:
         request.timeout.ms: 10000
         linger.ms: 0
         batch.size: 16384
+
+grpc:
+  client:
+    hub-router:
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
 
 logging:
   level:
