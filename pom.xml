@@ -104,6 +104,25 @@
                     <artifactId>protobuf-maven-plugin</artifactId>
                     <version>${protobuf-plugin.version}</version>
                 </plugin>
+
+                <plugin>
+                    <groupId>com.dkanejs.maven.plugins</groupId>
+                    <artifactId>docker-compose-maven-plugin</artifactId>
+                    <version>4.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>up</id>
+                            <phase>install</phase>
+                            <goals>
+                                <goal>up</goal>
+                            </goals>
+                            <configuration>
+                                <composeFile>compose.yml</composeFile>
+                                <build>true</build>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

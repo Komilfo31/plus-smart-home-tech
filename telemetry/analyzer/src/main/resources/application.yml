@@ -1,0 +1,57 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /
+
+analyzer:
+  kafka:
+    bootstrap-server: localhost:9092
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+    snapshots-topic: telemetry.snapshots.v1
+    sensors-topic: telemetry.sensors.v1
+    hubs-topic: telemetry.hubs.v1
+
+grpc:
+  client:
+    hub-router:
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
+spring:
+  application:
+    name: analyzer
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    show-sql: true
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/smart_home
+    username: postgres
+    password: 12345
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      missing-topics-fatal: false
+    properties:
+      max.poll.interval.ms: 300000
+      session.timeout.ms: 10000
+
+logging:
+  level:
+    ru.yandex.practicum.telemetry.analyzer: INFO
+    org.apache.kafka: WARN
+    org.springframework.kafka: DEBUG
+    org.hibernate.SQL: DEBUG
