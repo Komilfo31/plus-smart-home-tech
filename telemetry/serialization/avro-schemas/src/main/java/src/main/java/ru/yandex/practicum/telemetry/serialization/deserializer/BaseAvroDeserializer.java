@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.serialization.deserializer;
+package src.main.java.ru.yandex.practicum.telemetry.serialization.deserializer;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
@@ -12,17 +12,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 
-public class BaseAvroDeserializers<T extends SpecificRecordBase> implements Deserializer<T> {
+public class BaseAvroDeserializer<T extends SpecificRecordBase> implements Deserializer<T> {
 
     private final DecoderFactory decoderFactory;
     private final Schema schema;
     private final Class<T> targetType;
 
-    public BaseAvroDeserializers(Schema schema, Class<T> targetType) {
+    public BaseAvroDeserializer(Schema schema, Class<T> targetType) {
         this(DecoderFactory.get(), schema, targetType);
     }
 
-    public BaseAvroDeserializers(DecoderFactory decoderFactory, Schema schema, Class<T> targetType) {
+    public BaseAvroDeserializer(DecoderFactory decoderFactory, Schema schema, Class<T> targetType) {
         this.decoderFactory = decoderFactory;
         this.schema = schema;
         this.targetType = targetType;
@@ -30,7 +30,6 @@ public class BaseAvroDeserializers<T extends SpecificRecordBase> implements Dese
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-
     }
 
     @Override
@@ -52,6 +51,5 @@ public class BaseAvroDeserializers<T extends SpecificRecordBase> implements Dese
 
     @Override
     public void close() {
-
     }
 }

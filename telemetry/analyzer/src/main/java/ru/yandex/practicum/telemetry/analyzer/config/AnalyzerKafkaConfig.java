@@ -11,8 +11,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
-import ru.yandex.practicum.telemetry.serialization.deserializer.HubEventDeserializer;
-import ru.yandex.practicum.telemetry.serialization.deserializer.SnapshotDeserializer;
+import src.main.java.ru.yandex.practicum.telemetry.serialization.deserializer.HubEventDeserializer;
+import src.main.java.ru.yandex.practicum.telemetry.serialization.deserializer.SnapshotDeserializer;
 
 import java.util.Map;
 

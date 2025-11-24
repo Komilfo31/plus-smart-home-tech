@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import ru.yandex.practicum.telemetry.serialization.serializer.CollectorAvroSerializer;
+import src.main.java.ru.yandex.practicum.telemetry.serialization.serializer.CollectorAvroSerializer;
 
 import java.util.Map;
 

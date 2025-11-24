@@ -3,6 +3,8 @@ package ru.yandex.practicum.telemetry.collector.service;
 import org.apache.avro.specific.SpecificRecordBase;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.dto.hubevent.HubEvent;
 import ru.yandex.practicum.telemetry.collector.dto.sensorevent.SensorEvent;
 import ru.yandex.practicum.telemetry.collector.exception.EventProcessingException;
@@ -11,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.telemetry.collector.mapper.EventMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.kafka.core.KafkaTemplate;
-import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
-import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.mapper.ProtoToAvroMapper;
 
 
