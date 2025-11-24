@@ -111,6 +111,10 @@
             <groupId>ru.yandex.practicum</groupId>
             <artifactId>serialization</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ru.yandex.practicum</groupId>
+            <artifactId>proto-schemas</artifactId>
+        </dependency>
 
 
     </dependencies>
