@@ -11,7 +11,7 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: ru.yandex.practicum.telemetry.serialization.serializer.CollectorAvroSerializer
+      value-serializer: src.main.java.ru.yandex.practicum.telemetry.serialization.serializer.CollectorAvroSerializer
       acks: all
       retries: 3
       properties:
