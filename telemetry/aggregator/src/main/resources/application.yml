@@ -11,22 +11,27 @@ spring:
       group-id: aggregator-group
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: ru.yandex.practicum.telemetry.aggregator.serialization.SensorEventDeserializer
-      properties:
-        enable.auto.commit: false
-        max.poll.records: 10
-        max.poll.interval.ms: 30000
-        fetch.max.wait.ms: 100
+      value-deserializer: ru.yandex.practicum.telemetry.serialization.deserializer.SensorEventDeserializer
+      enable-auto-commit: false
+      max-poll-records: 10
+      max-poll-interval-ms: 30000
+      fetch-max-wait-ms: 100
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: ru.yandex.practicum.telemetry.aggregator.serialization.AggregatorAvroSerializer
+      value-serializer: ru.yandex.practicum.telemetry.serialization.serializer.AggregatorAvroSerializer
+      acks: all
+      retries: 3
       properties:
-        acks: all
-        retries: 3
         delivery.timeout.ms: 15000
         request.timeout.ms: 10000
         linger.ms: 0
         batch.size: 16384
+
+app:
+  kafka:
+    topics:
+      sensors: telemetry.sensors.v1
+      snapshots: telemetry.snapshots.v1
 
 grpc:
   client:

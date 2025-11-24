@@ -11,6 +11,8 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SwitchSensorAvro;
 import ru.yandex.practicum.kafka.telemetry.event.TemperatureSensorAvro;
 import ru.yandex.practicum.telemetry.analyzer.entity.Condition;
+import ru.yandex.practicum.telemetry.analyzer.entity.ConditionType;
+import ru.yandex.practicum.telemetry.analyzer.entity.Operation;
 import ru.yandex.practicum.telemetry.analyzer.entity.Scenario;
 import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioAction;
 import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioCondition;
@@ -60,7 +62,9 @@ public class SnapshotAnalysisService {
         }
 
         Object sensorData = sensorState.getData();
-        int sensorValue = extractSensorValue(sensorData, condition.getType());
+
+        ConditionType conditionType = convertToConditionType(condition.getType());
+        int sensorValue = extractSensorValue(sensorData, conditionType);
 
         return evaluateCondition(sensorValue, condition);
     }
@@ -79,14 +83,14 @@ public class SnapshotAnalysisService {
         grpcCommandService.executeActions(hubId, scenario.getName(), actionsToExecute);
     }
 
-    private int extractSensorValue(Object sensorData, String conditionType) {
+    private int extractSensorValue(Object sensorData, ConditionType conditionType) {
         try {
             if (sensorData == null) {
                 return 0;
             }
 
             switch (conditionType) {
-                case "TEMPERATURE":
+                case TEMPERATURE:
                     if (sensorData instanceof TemperatureSensorAvro) {
                         return ((TemperatureSensorAvro) sensorData).getTemperatureC();
                     }
@@ -95,25 +99,25 @@ public class SnapshotAnalysisService {
                     }
                     break;
 
-                case "HUMIDITY":
+                case HUMIDITY:
                     if (sensorData instanceof ClimateSensorAvro) {
                         return ((ClimateSensorAvro) sensorData).getHumidity();
                     }
                     break;
 
-                case "CO2_LEVEL":
+                case CO2_LEVEL:
                     if (sensorData instanceof ClimateSensorAvro) {
                         return ((ClimateSensorAvro) sensorData).getCo2Level();
                     }
                     break;
 
-                case "LUMINOSITY":
+                case LUMINOSITY:
                     if (sensorData instanceof LightSensorAvro) {
                         return ((LightSensorAvro) sensorData).getLuminosity();
                     }
                     break;
 
-                case "LINK_QUALITY":
+                case LINK_QUALITY:
                     if (sensorData instanceof LightSensorAvro) {
                         return ((LightSensorAvro) sensorData).getLinkQuality();
                     }
@@ -122,27 +126,23 @@ public class SnapshotAnalysisService {
                     }
                     break;
 
-                case "MOTION":
+                case MOTION:
                     if (sensorData instanceof MotionSensorAvro) {
                         return ((MotionSensorAvro) sensorData).getMotion() ? 1 : 0;
                     }
                     break;
 
-                case "VOLTAGE":
+                case VOLTAGE:
                     if (sensorData instanceof MotionSensorAvro) {
                         return ((MotionSensorAvro) sensorData).getVoltage();
                     }
                     break;
 
-                case "SWITCH":
+                case SWITCH:
                     if (sensorData instanceof SwitchSensorAvro) {
                         return ((SwitchSensorAvro) sensorData).getState() ? 1 : 0;
                     }
                     break;
-
-                default:
-                    log.debug("Неизвестный тип условия: {}", conditionType);
-                    return 0;
             }
 
             log.debug("Тип данных {} не соответствует ожидаемому типу условия {}",
@@ -156,7 +156,10 @@ public class SnapshotAnalysisService {
     }
 
     private boolean evaluateCondition(int sensorValue, Condition condition) {
-        switch (condition.getOperation()) {
+        //делаю конвертацию
+        Operation operation = convertToOperationType(condition.getOperation().name());
+
+        switch (operation) {
             case GREATER:
                 return sensorValue > condition.getValue();
             case LESS:
@@ -164,7 +167,28 @@ public class SnapshotAnalysisService {
             case EQUALS:
                 return sensorValue == condition.getValue();
             default:
+                log.warn("Неизвестная операция: {}", condition.getOperation());
                 return false;
+        }
+    }
+
+
+    private ConditionType convertToConditionType(String typeString) {
+        try {
+            return ConditionType.valueOf(typeString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Неизвестный тип условия: {}", typeString);
+            return ConditionType.SWITCH;
+        }
+    }
+
+
+    private Operation convertToOperationType(String operationString) {
+        try {
+            return Operation.valueOf(operationString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Неизвестная операция: {}", operationString);
+            return Operation.EQUALS;
         }
     }
 

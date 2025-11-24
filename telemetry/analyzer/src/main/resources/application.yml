@@ -3,26 +3,24 @@ server:
   servlet:
     context-path: /
 
-analyzer:
-  kafka:
-    bootstrap-server: localhost:9092
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
-    snapshots-topic: telemetry.snapshots.v1
-    sensors-topic: telemetry.sensors.v1
-    hubs-topic: telemetry.hubs.v1
-
-grpc:
-  client:
-    hub-router:
-      address: 'static://localhost:59090'
-      enableKeepAlive: true
-      keepAliveWithoutCalls: true
-      negotiationType: plaintext
-
 spring:
   application:
     name: analyzer
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: analyzer-group
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      max-poll-records: 50
+    listener:
+      missing-topics-fatal: false
+      ack-mode: manual
+    properties:
+      max.poll.interval.ms: 300000
+      session.timeout.ms: 10000
 
   jpa:
     hibernate:
@@ -41,13 +39,20 @@ spring:
     username: postgres
     password: 12345
 
+app:
   kafka:
-    bootstrap-servers: localhost:9092
-    listener:
-      missing-topics-fatal: false
-    properties:
-      max.poll.interval.ms: 300000
-      session.timeout.ms: 10000
+    topics:
+      sensors: telemetry.sensors.v1
+      hubs: telemetry.hubs.v1
+      snapshots: telemetry.snapshots.v1
+
+grpc:
+  client:
+    hub-router:
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
 
 logging:
   level:

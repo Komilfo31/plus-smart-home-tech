@@ -5,6 +5,8 @@ public enum ConditionType {
     LUMINOSITY,
     SWITCH,
     TEMPERATURE,
-    CO2LEVEL,
-    HUMIDITY
+    CO2_LEVEL,
+    HUMIDITY,
+    LINK_QUALITY,
+    VOLTAGE
 }

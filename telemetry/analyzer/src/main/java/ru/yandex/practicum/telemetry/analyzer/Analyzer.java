@@ -1,27 +1,31 @@
 package ru.yandex.practicum.telemetry.analyzer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
-import ru.yandex.practicum.telemetry.analyzer.component.HubEventProcessor;
-import ru.yandex.practicum.telemetry.analyzer.component.SnapshotProcessor;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class Analyzer {
 
+    private static final Logger log = LoggerFactory.getLogger(Analyzer.class);
+
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(Analyzer.class, args);
 
-        final HubEventProcessor hubEventProcessor = context.getBean(HubEventProcessor.class);
-        final SnapshotProcessor snapshotProcessor = context.getBean(SnapshotProcessor.class);
+        log.info("Analyzer application started successfully");
+        log.info("Sending commands via gRPC to hub-router");
 
-        Thread hubEventsThread = new Thread(hubEventProcessor);
-        hubEventsThread.setName("HubEventHandlerThread");
-        hubEventsThread.setDaemon(true);
-        hubEventsThread.start();
+        addShutdownHook(context);
+    }
 
-        snapshotProcessor.start();
+    private static void addShutdownHook(ConfigurableApplicationContext context) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            context.close();
+            log.info("Analyzer application shutdown completed");
+        }));
     }
 }

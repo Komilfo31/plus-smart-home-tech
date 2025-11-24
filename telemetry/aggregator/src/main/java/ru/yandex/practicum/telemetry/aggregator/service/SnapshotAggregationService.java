@@ -39,11 +39,25 @@ public class SnapshotAggregationService {
         if (oldState != null) {
             if (oldState.getTimestamp().isAfter(eventTimestamp)) {
                 log.debug("Событие устарело для датчика {}. Пропускаем.", sensorId);
+                if (eventTimestamp.isAfter(snapshot.getTimestamp())) {
+                    SensorsSnapshotAvro updatedSnapshot = SensorsSnapshotAvro.newBuilder(snapshot)
+                            .setTimestamp(eventTimestamp)
+                            .build();
+                    snapshots.put(hubId, updatedSnapshot);
+                    return Optional.of(updatedSnapshot);
+                }
                 return Optional.empty();
             }
 
             if (dataEquals(oldState.getData(), event.getPayload())) {
                 log.debug("Данные датчика {} не изменились. Пропускаем.", sensorId);
+                if (eventTimestamp.isAfter(snapshot.getTimestamp())) {
+                    SensorsSnapshotAvro updatedSnapshot = SensorsSnapshotAvro.newBuilder(snapshot)
+                            .setTimestamp(eventTimestamp)
+                            .build();
+                    snapshots.put(hubId, updatedSnapshot);
+                    return Optional.of(updatedSnapshot);
+                }
                 return Optional.empty();
             }
         }
@@ -55,7 +69,8 @@ public class SnapshotAggregationService {
 
         sensorsState.put(sensorId, newState);
 
-        SensorsSnapshotAvro updatedSnapshot = SensorsSnapshotAvro.newBuilder(snapshot)
+        SensorsSnapshotAvro updatedSnapshot = SensorsSnapshotAvro.newBuilder()
+                .setHubId(hubId)
                 .setTimestamp(eventTimestamp)
                 .setSensorsState(sensorsState)
                 .build();

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.analyzer.serialization;
+package ru.yandex.practicum.telemetry.serialization.deserializer;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;

@@ -1,58 +1,74 @@
 package ru.yandex.practicum.telemetry.aggregator.config;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
-import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
-import ru.yandex.practicum.telemetry.aggregator.serialization.SensorEventDeserializer;
+import ru.yandex.practicum.telemetry.serialization.deserializer.SensorEventDeserializer;
+import ru.yandex.practicum.telemetry.serialization.serializer.AggregatorAvroSerializer;
 
-import java.util.Properties;
+import java.util.Map;
 
 @Configuration
-@RequiredArgsConstructor
+@EnableKafka
 public class AggregatorKafkaConfig {
 
-    private final SensorEventDeserializer sensorEventDeserializer;
-
     @Bean
-    public Consumer<String, SensorEventAvro> kafkaConsumer() {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "aggregator-group");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, sensorEventDeserializer.getClass().getName());
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
-        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "30000");
-        props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, "100");
+    public ConsumerFactory<String, SensorEventAvro> sensorEventConsumerFactory(
+            KafkaProperties kafkaProperties,
+            SensorEventDeserializer sensorEventDeserializer) {
 
-        return new KafkaConsumer<>(props);
+        Map<String, Object> props = kafkaProperties.buildConsumerProperties(null);
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                sensorEventDeserializer
+        );
     }
 
     @Bean
-    public Producer<String, SensorsSnapshotAvro> kafkaProducer() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                "ru.yandex.practicum.telemetry.aggregator.serialization.AggregatorAvroSerializer");
-        props.put(ProducerConfig.ACKS_CONFIG, "all");
-        props.put(ProducerConfig.RETRIES_CONFIG, "3");
-        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, "15000");
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, "10000");
-        props.put(ProducerConfig.LINGER_MS_CONFIG, "0");
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, "16384");
+    public ConcurrentKafkaListenerContainerFactory<String, SensorEventAvro> kafkaListenerContainerFactory(
+            ConsumerFactory<String, SensorEventAvro> sensorEventConsumerFactory) {
 
-        return new KafkaProducer<>(props);
+        ConcurrentKafkaListenerContainerFactory<String, SensorEventAvro> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(sensorEventConsumerFactory);
+        factory.setBatchListener(true);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        return factory;
+    }
+
+    @Bean
+    public ProducerFactory<String, SpecificRecordBase> producerFactory(
+            KafkaProperties kafkaProperties) {
+
+        Map<String, Object> props = kafkaProperties.buildProducerProperties(null);
+        return new DefaultKafkaProducerFactory<>(
+                props,
+                new StringSerializer(),
+                new AggregatorAvroSerializer()
+        );
+    }
+
+    @Bean
+    public KafkaTemplate<String, SpecificRecordBase> kafkaTemplate(
+            ProducerFactory<String, SpecificRecordBase> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    public SensorEventDeserializer sensorEventDeserializer() {
+        return new SensorEventDeserializer();
     }
 }

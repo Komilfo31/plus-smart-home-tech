@@ -11,11 +11,12 @@ import ru.yandex.practicum.kafka.telemetry.event.ScenarioRemovedEventAvro;
 import ru.yandex.practicum.telemetry.analyzer.converter.ScenarioConverter;
 import ru.yandex.practicum.telemetry.analyzer.entity.Scenario;
 import ru.yandex.practicum.telemetry.analyzer.entity.Sensor;
-import ru.yandex.practicum.telemetry.analyzer.repository.AnalyzerService;
 import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.SensorRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -31,17 +32,15 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     public void addDevice(DeviceAddedEventAvro deviceAdded, String hubId) {
         try {
             String deviceId = deviceAdded.getId().toString();
-            String deviceType = deviceAdded.getType().toString();
 
             Sensor sensor = sensorRepository.findById(deviceId)
                     .orElse(new Sensor());
 
             sensor.setId(deviceId);
             sensor.setHubId(hubId);
-            sensor.setId(deviceType);
 
             sensorRepository.save(sensor);
-            log.info("Устройство добавлено: hub={}, device={}, type={}", hubId, deviceId, deviceType);
+            log.info("Устройство добавлено: hub={}, device={}", hubId, deviceId);
 
         } catch (Exception e) {
             log.error("Ошибка добавления устройства: hub={}, device={}", hubId, deviceAdded.getId(), e);
@@ -53,8 +52,16 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     public void removeDevice(DeviceRemovedEventAvro deviceRemoved) {
         try {
             String deviceId = deviceRemoved.getId().toString();
-            sensorRepository.deleteById(deviceId);
-            log.info("Устройство удалено: device={}", deviceId);
+
+            Sensor sensor = sensorRepository.findById(deviceId)
+                    .orElseThrow(() -> {
+                        log.warn("Устройство не найдено для удаления: device={}", deviceId);
+                        return new RuntimeException("Устройство не найдено: " + deviceId);
+                    });
+
+            String hubId = sensor.getHubId();
+            sensorRepository.delete(sensor);
+            log.info("Устройство удалено: hub={}, device={}", hubId, deviceId);
 
         } catch (Exception e) {
             log.error("Ошибка удаления устройства: device={}", deviceRemoved.getId(), e);
@@ -65,6 +72,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     @Override
     public void addScenario(ScenarioAddedEventAvro scenarioAdded, String hubId) {
         try {
+            validateScenarioSensors(hubId, scenarioAdded);
+
             Scenario scenario = scenarioConverter.convertToScenario(hubId, scenarioAdded);
 
             scenarioRepository.findByHubIdAndName(hubId, scenario.getName())
@@ -87,10 +96,13 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         try {
             String scenarioName = scenarioRemoved.getName().toString();
             scenarioRepository.findByHubIdAndName(hubId, scenarioName)
-                    .ifPresent(scenario -> {
-                        scenarioRepository.delete(scenario);
-                        log.info("Сценарий удален: hub={}, name={}", hubId, scenarioName);
-                    });
+                    .ifPresentOrElse(
+                            scenario -> {
+                                scenarioRepository.delete(scenario);
+                                log.info("Сценарий удален: hub={}, name={}", hubId, scenarioName);
+                            },
+                            () -> log.warn("Сценарий не найден для удаления: hub={}, name={}", hubId, scenarioName)
+                    );
 
         } catch (Exception e) {
             log.error("Ошибка удаления сценария: hub={}, name={}",
@@ -103,5 +115,32 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     @Transactional(readOnly = true)
     public List<Scenario> getScenariosByHubId(String hubId) {
         return scenarioRepository.findByHubIdWithConditionsAndActions(hubId);
+    }
+
+    private void validateScenarioSensors(String hubId, ScenarioAddedEventAvro scenarioAdded) {
+        Set<String> missingSensors = new HashSet<>();
+
+        for (var condition : scenarioAdded.getConditions()) {
+            String sensorId = condition.getSensorId().toString();
+            if (!sensorRepository.existsByHubIdAndId(hubId, sensorId)) {
+                missingSensors.add(sensorId);
+            }
+        }
+
+        for (var action : scenarioAdded.getActions()) {
+            String sensorId = action.getSensorId().toString();
+            if (!sensorRepository.existsByHubIdAndId(hubId, sensorId)) {
+                missingSensors.add(sensorId);
+            }
+        }
+
+        if (!missingSensors.isEmpty()) {
+            String errorMessage = String.format(
+                    "Сценарий '%s' ссылается на несуществующие датчики в хабе %s: %s",
+                    scenarioAdded.getName(), hubId, missingSensors
+            );
+            log.warn(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
     }
 }

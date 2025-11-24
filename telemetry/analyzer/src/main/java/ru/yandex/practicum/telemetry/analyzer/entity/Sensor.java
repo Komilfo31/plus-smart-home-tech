@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "sensor")
+@Table(name = "sensors")
 public class Sensor {
 
     @Id

@@ -15,7 +15,6 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.mapper.ProtoToAvroMapper;
 
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -23,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 public class KafkaEventService implements EventService {
 
     private final KafkaTemplate<String, SpecificRecordBase> kafkaTemplate;
-    private final EventMapper eventMapper = new EventMapper();
-    private final ProtoToAvroMapper protoToAvroMapper = new ProtoToAvroMapper();
+    private final EventMapper eventMapper;
+    private final ProtoToAvroMapper protoToAvroMapper;
 
     private static final String SENSORS_TOPIC = "telemetry.sensors.v1";
     private static final String HUBS_TOPIC = "telemetry.hubs.v1";
@@ -38,9 +37,7 @@ public class KafkaEventService implements EventService {
                 throw new EventProcessingException("Failed to map sensor event to Avro");
             }
 
-            kafkaTemplate.send(SENSORS_TOPIC, event.getId(), avroEvent)
-                    .get(10, TimeUnit.SECONDS);
-
+            kafkaTemplate.send(SENSORS_TOPIC, event.getId(), avroEvent);
             log.debug("Successfully sent sensor event to Kafka: {}", event.getId());
 
         } catch (Exception e) {
@@ -53,10 +50,7 @@ public class KafkaEventService implements EventService {
     public void processSensorEvent(SensorEventProto event) {
         try {
             SensorEventAvro avroEvent = protoToAvroMapper.toAvro(event);
-
-            kafkaTemplate.send(SENSORS_TOPIC, event.getId(), avroEvent)
-                    .get(10, TimeUnit.SECONDS);
-
+            kafkaTemplate.send(SENSORS_TOPIC, event.getId(), avroEvent);
             log.debug("Событие датчика успешно отправлено в Kafka: {}", event.getId());
 
         } catch (Exception e) {
@@ -74,9 +68,7 @@ public class KafkaEventService implements EventService {
                 throw new EventProcessingException("Failed to map hub event to Avro");
             }
 
-            kafkaTemplate.send(HUBS_TOPIC, event.getHubId(), avroEvent)
-                    .get(10, TimeUnit.SECONDS);
-
+            kafkaTemplate.send(HUBS_TOPIC, event.getHubId(), avroEvent);
             log.debug("Successfully sent hub event to Kafka: {}", event.getHubId());
 
         } catch (Exception e) {
@@ -89,10 +81,7 @@ public class KafkaEventService implements EventService {
     public void processHubEvent(HubEventProto event) {
         try {
             HubEventAvro avroEvent = protoToAvroMapper.toAvro(event);
-
-            kafkaTemplate.send(HUBS_TOPIC, event.getHubId(), avroEvent)
-                    .get(10, TimeUnit.SECONDS);
-
+            kafkaTemplate.send(HUBS_TOPIC, event.getHubId(), avroEvent);
             log.debug("Событие хаба успешно отправлено в Kafka: {}", event.getHubId());
 
         } catch (Exception e) {

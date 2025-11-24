@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.analyzer.repository;
+package ru.yandex.practicum.telemetry.analyzer.service;
 
 import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceRemovedEventAvro;

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.telemetry.analyzer.converter;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
@@ -17,10 +18,14 @@ import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioActionId;
 import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioCondition;
 import ru.yandex.practicum.telemetry.analyzer.entity.ScenarioConditionId;
 import ru.yandex.practicum.telemetry.analyzer.entity.Sensor;
+import ru.yandex.practicum.telemetry.analyzer.repository.SensorRepository;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ScenarioConverter {
+
+    private final SensorRepository sensorRepository;
 
     public Scenario convertToScenario(String hubId, ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro event) {
         log.info("Конвертация сценария: hub={}, name={}", hubId, event.getName());
@@ -66,13 +71,14 @@ public class ScenarioConverter {
         id.setSensorId(avroCondition.getSensorId().toString());
         scenarioCondition.setId(id);
 
-        Sensor sensor = new Sensor();
-        sensor.setId(avroCondition.getSensorId().toString());
-        sensor.setHubId(hubId);
+        String sensorId = avroCondition.getSensorId().toString();
+        Sensor sensor = sensorRepository.findById(sensorId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Сенсор не найден: " + sensorId + " для хаба: " + hubId));
         scenarioCondition.setSensor(sensor);
 
         Condition condition = new Condition();
-        condition.setType(String.valueOf(mapToConditionType(avroCondition.getType())));
+        condition.setType(mapToConditionType(avroCondition.getType()).name());
         condition.setOperation(mapToOperation(avroCondition.getOperation()));
         condition.setValue(extractConditionValue(avroCondition.getValue()));
         scenarioCondition.setCondition(condition);
@@ -88,9 +94,10 @@ public class ScenarioConverter {
         id.setSensorId(avroAction.getSensorId().toString());
         scenarioAction.setId(id);
 
-        Sensor sensor = new Sensor();
-        sensor.setId(avroAction.getSensorId().toString());
-        sensor.setHubId(hubId);
+        String sensorId = avroAction.getSensorId().toString();
+        Sensor sensor = sensorRepository.findById(sensorId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Сенсор не найден: " + sensorId + " для хаба: " + hubId));
         scenarioAction.setSensor(sensor);
 
         Action action = new Action();
@@ -107,7 +114,7 @@ public class ScenarioConverter {
             case LUMINOSITY -> ConditionType.LUMINOSITY;
             case SWITCH -> ConditionType.SWITCH;
             case TEMPERATURE -> ConditionType.TEMPERATURE;
-            case CO2LEVEL -> ConditionType.CO2LEVEL;
+            case CO2LEVEL -> ConditionType.CO2_LEVEL;
             case HUMIDITY -> ConditionType.HUMIDITY;
             default -> {
                 log.warn("Неизвестный тип условия: {}", conditionTypeAvro);
