@@ -27,7 +27,7 @@ grpc:
 
 logging:
   level:
-    ru.yandex.practicum.telemetry.collector: DEBUG
+    ru.yandex.practicum.telemetry.collector: TRACE
     org.apache.kafka: WARN
     org.springframework.kafka: WARN
     net.devh: INFO

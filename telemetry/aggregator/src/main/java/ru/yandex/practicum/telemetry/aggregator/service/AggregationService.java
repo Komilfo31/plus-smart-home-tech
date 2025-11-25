@@ -10,6 +10,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
+import ru.yandex.practicum.telemetry.aggregator.config.KafkaConfig;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,9 +22,10 @@ public class AggregationService {
 
     private final SnapshotAggregationService aggregationService;
     private final KafkaTemplate<String, SpecificRecordBase> kafkaTemplate;
+    private final KafkaConfig kafkaConfig;
 
     @KafkaListener(
-            topics = "${app.kafka.topics.sensors:telemetry.sensors.v1}",
+            topics = "${app.kafka.topics.sensors}",
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void processSensorEvents(List<ConsumerRecord<String, SensorEventAvro>> records,
@@ -59,8 +61,18 @@ public class AggregationService {
 
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         try {
-            kafkaTemplate.send("telemetry.snapshots.v1", snapshot.getHubId().toString(), snapshot);
-            log.debug("Снапшот отправлен для хаба: {}", snapshot.getHubId());
+            String topic = kafkaConfig.getTopics().getSnapshots();
+
+            kafkaTemplate.send(
+                    topic,
+                    null,
+                    snapshot.getTimestamp().toEpochMilli(),
+                    snapshot.getHubId().toString(),
+                    snapshot
+            );
+
+            log.debug("Снапшот отправлен для хаба: {}, топик: {}", snapshot.getHubId(), topic);
+
         } catch (Exception e) {
             log.error("Ошибка отправки снапшота для хаба {}", snapshot.getHubId(), e);
         }
