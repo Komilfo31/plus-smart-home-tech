@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.collector.serialization;
+package src.main.java.ru.yandex.practicum.telemetry.serialization.serializer;
 
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;

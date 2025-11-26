@@ -11,16 +11,23 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: ru.yandex.practicum.telemetry.collector.serialization.CollectorAvroSerializer
+      value-serializer: src.main.java.ru.yandex.practicum.telemetry.serialization.serializer.CollectorAvroSerializer
+      acks: all
+      retries: 3
       properties:
-        spring.json.add.type.headers: false
+        enable.idempotence: true
         delivery.timeout.ms: 15000
         request.timeout.ms: 10000
         linger.ms: 0
         batch.size: 16384
 
+grpc:
+  server:
+    port: 59091
+
 logging:
   level:
-    ru.yandex.practicum.telemetry: INFO
+    ru.yandex.practicum.telemetry.collector: TRACE
     org.apache.kafka: WARN
     org.springframework.kafka: WARN
+    net.devh: INFO

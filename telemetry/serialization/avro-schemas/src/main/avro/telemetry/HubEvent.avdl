@@ -39,7 +39,7 @@ protocol HubEventProtocol {
         string name;
     }
     record HubEventAvro {
-        string hub_id;
+        string hubId;
         timestamp_ms timestamp;
         union { DeviceAddedEventAvro, DeviceRemovedEventAvro, ScenarioAddedEventAvro, ScenarioRemovedEventAvro } payload;
     }
