@@ -1,47 +1,12 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: aggregator
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: aggregator-group
-      auto-offset-reset: latest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: src.main.java.ru.yandex.practicum.telemetry.serialization.deserializer.SensorEventDeserializer
-      enable-auto-commit: false
-      max-poll-records: 10
-      max-poll-interval-ms: 30000
-      fetch-max-wait-ms: 100
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: src.main.java.ru.yandex.practicum.telemetry.serialization.serializer.AggregatorAvroSerializer
-      acks: all
-      retries: 3
-      properties:
-        delivery.timeout.ms: 15000
-        request.timeout.ms: 10000
-        linger.ms: 0
-        batch.size: 16384
-
-app:
-  kafka:
-    topics:
-      sensors: telemetry.sensors.v1
-      snapshots: telemetry.snapshots.v1
-
-grpc:
-  client:
-    hub-router:
-      address: 'static://localhost:59090'
-      enableKeepAlive: true
-      keepAliveWithoutCalls: true
-      negotiationType: plaintext
-
-logging:
-  level:
-    ru.yandex.practicum.telemetry: INFO
-    org.apache.kafka: WARN
+  config:
+    import: configserver:http://localhost:8888
+    cloud:
+      config:
+        fail-fast: true
+        retry:
+          useRandomPolicy: true
+          max-interval: 6000

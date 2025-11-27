@@ -1,33 +1,11 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /
-
 spring:
   application:
     name: collector
-
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: src.main.java.ru.yandex.practicum.telemetry.serialization.serializer.CollectorAvroSerializer
-      acks: all
-      retries: 3
-      properties:
-        enable.idempotence: true
-        delivery.timeout.ms: 15000
-        request.timeout.ms: 10000
-        linger.ms: 0
-        batch.size: 16384
-
-grpc:
-  server:
-    port: 59091
-
-logging:
-  level:
-    ru.yandex.practicum.telemetry.collector: TRACE
-    org.apache.kafka: WARN
-    org.springframework.kafka: WARN
-    net.devh: INFO
+  config:
+    import: configserver:http://localhost:8888
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
