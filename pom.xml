@@ -21,6 +21,10 @@
         <module>commerce</module>
         <module>infra/Config-server</module>
         <module>infra/discovery-server</module>
+        <module>commerce/interaction-api</module>
+        <module>commerce/shopping-store</module>
+        <module>commerce/shopping-cart</module>
+        <module>commerce/warehouse</module>
     </modules>
 
     <properties>
@@ -28,7 +32,6 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
-
         <!-- gRPC -->
         <grpc-client-starter.version>3.1.0.RELEASE</grpc-client-starter.version>
         <grpc-server-starter.version>3.1.0.RELEASE</grpc-server-starter.version>
@@ -50,9 +53,6 @@
 
         <!-- Lombok -->
         <lombok.version>1.18.30</lombok.version>
-
-        <!-- Logging -->
-        <!-- <slf4j.version>1.7.36</slf4j.version> -->
 
         <!-- OpenAPI -->
         <springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>

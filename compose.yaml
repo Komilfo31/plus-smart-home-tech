@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   kafka:
     image: confluentinc/confluent-local:7.4.3
@@ -48,5 +50,59 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  store-db:
+    image: postgres:16.1
+    container_name: store-db
+    environment:
+      POSTGRES_DB: store
+      POSTGRES_USER: store
+      POSTGRES_PASSWORD: store
+    ports:
+      - "5433:5432"
+    volumes:
+      - store_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U store -d store"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cart-db:
+    image: postgres:16.1
+    container_name: cart-db
+    environment:
+      POSTGRES_DB: cart
+      POSTGRES_USER: cart
+      POSTGRES_PASSWORD: cart
+    ports:
+      - "5434:5432"
+    volumes:
+      - cart_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cart -d cart"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  warehouse-db:
+    image: postgres:16.1
+    container_name: warehouse-db
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_USER: warehouse
+      POSTGRES_PASSWORD: warehouse
+    ports:
+      - "5435:5432"
+    volumes:
+      - warehouse_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U warehouse -d warehouse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
+  store_data:
+  cart_data:
+  warehouse_data:
