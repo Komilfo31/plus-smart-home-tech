@@ -1,0 +1,15 @@
+package interaction.model.warehouse;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class AddProductToWarehouseRequest {
+    private UUID productId;
+    private long quantity;
+}
