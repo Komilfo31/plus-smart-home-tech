@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS shopping_cart
 (
     shopping_cart_id UUID PRIMARY KEY,
     username         VARCHAR(255) NOT NULL,
-    state            VARCHAR(12) CHECK (state IN ('ACTIVE', 'DEACTIVATED'))
+    state            VARCHAR(12)
 );
 
 CREATE TABLE IF NOT EXISTS cart_products
