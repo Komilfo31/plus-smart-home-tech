@@ -101,8 +101,62 @@ services:
       timeout: 5s
       retries: 5
 
+  order-db:
+    image: postgres:16.1
+    container_name: order-db
+    environment:
+      POSTGRES_DB: order
+      POSTGRES_USER: order
+      POSTGRES_PASSWORD: order
+    ports:
+      - "5436:5432"
+    volumes:
+      - order_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U warehouse -d warehouse" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment-db:
+    image: postgres:16.1
+    container_name: payment-db
+    environment:
+      POSTGRES_DB: payment
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U warehouse -d warehouse" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  delivery-db:
+    image: postgres:16.1
+    container_name: delivery-db
+    environment:
+      POSTGRES_DB: delivery
+      POSTGRES_USER: delivery
+      POSTGRES_PASSWORD: delivery
+    ports:
+      - "5438:5432"
+    volumes:
+      - delivery_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U warehouse -d warehouse" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   store_data:
   cart_data:
   warehouse_data:
+  order_data:
+  payment_data:
+  delivery_data:
